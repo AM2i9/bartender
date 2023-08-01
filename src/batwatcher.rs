@@ -1,7 +1,7 @@
-use std::{time::Duration, io::Write, thread};
+use std::{time::Duration, io::Write};
 use serde::Serialize;
-use dbus::blocking::{Connection, Proxy};
-use crate::bus::bat_disp::OrgFreedesktopUPowerDevice;
+use dbus::{blocking::{Connection, Proxy}, Message};
+use crate::bus::bat_disp::{OrgFreedesktopUPowerDevice, OrgFreedesktopDBusPropertiesPropertiesChanged};
 
 #[derive(Serialize, Debug)]
 enum BatteryState {
@@ -70,30 +70,48 @@ fn fetch_battery(bat_proxy: &Proxy<&Connection>) -> Battery {
 
 }
 
+fn dump_battery(conn: &Connection) {
+    let mut stdout = std::io::stdout().lock();
+
+    let bat_proxy = conn.with_proxy(
+        "org.freedesktop.UPower",
+        "/org/freedesktop/UPower/devices/DisplayDevice",
+        Duration::from_millis(5000),
+    );
+    
+    match serde_json::to_string(&fetch_battery(&bat_proxy)) {
+        Ok(out) => {
+            let _ = stdout.write_all(&[out.as_bytes(), b"\n"].concat());
+            let _ = stdout.flush();
+        },
+        Err(e) => {
+            eprintln!("Failed to serialize output: {}", e);
+        }
+    };
+}
+
 pub fn batwatcher() {
     match Connection::new_system() {
         Ok(conn) => {
-            let mut stdout = std::io::stdout().lock();
+
+            dump_battery(&conn);
 
             let bat_proxy = conn.with_proxy(
                 "org.freedesktop.UPower",
                 "/org/freedesktop/UPower/devices/DisplayDevice",
                 Duration::from_millis(5000),
             );
-            
-            let ten_sec = Duration::from_secs(1);
+
+            let _ = bat_proxy.match_signal(|_: OrgFreedesktopDBusPropertiesPropertiesChanged, c: &Connection, _: &Message| {
+                dump_battery(c);
+                true
+            });
 
             loop {
-                match serde_json::to_string(&fetch_battery(&bat_proxy)) {
-                    Ok(out) => {
-                        let _ = stdout.write_all(&[out.as_bytes(), b"\n"].concat());
-                        let _ = stdout.flush();
-                    },
-                    Err(e) => {
-                        eprintln!("Failed to serialize output: {}", e);
-                    }
-                };
-                thread::sleep(ten_sec);
+                match conn.process(Duration::from_millis(1000)) {
+                    Err(e) => eprintln!("Failed to process incomming messages: {}", e),
+                    _ => {}
+                }; 
             }
         }
         Err(e) => eprintln!("Failed to connect to system dbus: {}", e),
