@@ -12,7 +12,7 @@ fn main() {
             let arg = &args[1];
             let _ = match &arg[..] {
                 "nmwatcher" => nmwatcher::nmwatcher(),
-                _ => Ok(())
+                _ => {}
             };
         },
         _ => {}

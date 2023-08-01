@@ -204,13 +204,22 @@ fn make_n_dump_devices(conn: &Connection, init: bool) -> Result<(), Box<dyn std:
     Ok(())
 }
 
-pub fn nmwatcher() -> Result<(), Box<dyn std::error::Error>> {
+pub fn nmwatcher() {
 
-    let conn = Connection::new_system()?;
-
-    let _ = make_n_dump_devices(&conn, true);
-    
-    loop {
-        conn.process(Duration::from_millis(1000))?; 
-    }
+    match Connection::new_system() {
+        Ok(conn) => {
+            match make_n_dump_devices(&conn, true){
+                Err(e) => eprintln!("Failed to display devices: {}", e),
+                _ => {}
+            };
+            
+            loop {
+                match conn.process(Duration::from_millis(1000)) {
+                    Err(e) => eprintln!("Failed to process incomming messages: {}", e),
+                    _ => {}
+                }; 
+            }
+        }
+        Err(e) => eprintln!("Failed to connect to system dbus: {}", e)
+    };
 }
