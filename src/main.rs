@@ -1,6 +1,7 @@
 use std::env;
 
 mod nmwatcher;
+mod batwatcher;
 mod bus;
 
 fn main() {
@@ -12,6 +13,7 @@ fn main() {
             let arg = &args[1];
             let _ = match &arg[..] {
                 "nmwatcher" => nmwatcher::nmwatcher(),
+                "batwatcher" => batwatcher::batwatcher(),
                 _ => {}
             };
         },
