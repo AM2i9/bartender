@@ -4,10 +4,11 @@ use bus::{
     network_manager::OrgFreedesktopNetworkManager,
 };
 use dbus::{blocking::Connection, Path};
+use serde::Serialize;
 use std::time::Duration;
 mod bus;
 
-#[derive(Debug)]
+#[derive(Serialize, Debug)]
 enum InterfaceState {
     Connected,
     Connecting,
@@ -15,14 +16,14 @@ enum InterfaceState {
     Unavailable,
 }
 
-#[derive(Debug)]
+#[derive(Serialize, Debug)]
 enum InterfaceType {
     Wired,
     Wireless,
     Other,
 }
 
-#[derive(Debug)]
+#[derive(Serialize, Debug)]
 struct Interface {
     name: Option<String>,
     conn_type: InterfaceType,
@@ -163,6 +164,6 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         }
     }
 
-    println!("Interfaces: {:?}", interfaces);
+    println!("{}", serde_json::to_string(&interfaces).unwrap());
     Ok(())
 }
