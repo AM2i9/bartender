@@ -5,7 +5,7 @@ use bus::{
 };
 use dbus::{blocking::Connection, Path};
 use serde::Serialize;
-use std::time::Duration;
+use std::{time::Duration, io::Write};
 mod bus;
 
 #[derive(Serialize, Debug)]
@@ -144,6 +144,8 @@ fn get_interface(conn: &Connection, device_path: Path) -> Option<Interface> {
 }
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
+
+    let mut stdout = std::io::stdout().lock();
     
     let conn = Connection::new_system()?;
 
@@ -164,6 +166,16 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         }
     }
 
-    println!("{}", serde_json::to_string(&interfaces).unwrap());
+
+    match serde_json::to_string(&interfaces) {
+        Ok(out) => {
+            let _ = stdout.write_all(out.as_bytes());
+            let _ = stdout.flush();
+        },
+        Err(e) => {
+            eprintln!("Failed to serialize output: {}", e);
+        }
+    };
+
     Ok(())
 }
