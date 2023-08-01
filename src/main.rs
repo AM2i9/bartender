@@ -1,9 +1,9 @@
 use bus::{
     active_connection::OrgFreedesktopNetworkManagerConnectionActive,
-    devices::OrgFreedesktopNetworkManagerDevice, ip4config::OrgFreedesktopNetworkManagerIP4Config,
-    network_manager::OrgFreedesktopNetworkManager,
+    devices::{OrgFreedesktopNetworkManagerDevice, self}, ip4config::OrgFreedesktopNetworkManagerIP4Config,
+    network_manager::{OrgFreedesktopNetworkManager, OrgFreedesktopNetworkManagerDeviceAdded},
 };
-use dbus::{blocking::Connection, Path};
+use dbus::{blocking::{Connection, Proxy}, Path, Message};
 use serde::Serialize;
 use std::{time::Duration, io::Write};
 mod bus;
@@ -32,12 +32,7 @@ struct Interface {
     state: InterfaceState,
 }
 
-fn get_interface(conn: &Connection, device_path: Path) -> Option<Interface> {
-    let dev_proxy = conn.with_proxy(
-        "org.freedesktop.NetworkManager",
-        device_path,
-        Duration::from_millis(5000),
-    );
+fn make_interface(conn: &Connection, dev_proxy: &Proxy<&Connection>, init: bool) -> Option<Interface> {
 
     let dev_type: InterfaceType = match dev_proxy.device_type() {
         Ok(1) => InterfaceType::Wired,
@@ -58,7 +53,7 @@ fn get_interface(conn: &Connection, device_path: Path) -> Option<Interface> {
             }
         };
 
-        let dev_state: InterfaceState = match OrgFreedesktopNetworkManagerDevice::state(&dev_proxy)
+        let dev_state: InterfaceState = match OrgFreedesktopNetworkManagerDevice::state(dev_proxy)
         {
             Ok(30) => InterfaceState::Disconnected,
             Ok(40..=90) => InterfaceState::Connecting,
@@ -71,7 +66,7 @@ fn get_interface(conn: &Connection, device_path: Path) -> Option<Interface> {
         };
 
         let ip_info: Option<(String, u64)> =
-            match OrgFreedesktopNetworkManagerDevice::ip4_config(&dev_proxy) {
+            match OrgFreedesktopNetworkManagerDevice::ip4_config(dev_proxy) {
                 Ok(ip_conf_path) => {
                     let ip_conf_proxy = conn.with_proxy(
                         "org.freedesktop.NetworkManager",
@@ -131,6 +126,11 @@ fn get_interface(conn: &Connection, device_path: Path) -> Option<Interface> {
             }
         };
 
+        // Start listening for events when device is first detected
+        if init {
+            add_statechange_listener(dev_proxy)
+        }
+
         Some(Interface {
             name: dev_name,
             conn_type: dev_type,
@@ -143,11 +143,15 @@ fn get_interface(conn: &Connection, device_path: Path) -> Option<Interface> {
     }
 }
 
-fn main() -> Result<(), Box<dyn std::error::Error>> {
+fn add_statechange_listener(dev_proxy: &Proxy<&Connection>) {
+    let _ = dev_proxy.match_signal(|sig: devices::OrgFreedesktopNetworkManagerDeviceStateChanged, conn: &Connection, _: &Message| {
+        let _ = make_n_dump_devices(conn, false);
+        sig.reason != 36
+    });
+}
 
+fn make_n_dump_devices(conn: &Connection, init: bool) -> Result<(), Box<dyn std::error::Error>> {
     let mut stdout = std::io::stdout().lock();
-    
-    let conn = Connection::new_system()?;
 
     let mut interfaces: Vec<Interface> = vec![];
 
@@ -160,16 +164,37 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let devices: Vec<dbus::Path<'static>> = proxy.get_devices()?;
 
     for device in devices {
-        match get_interface(&conn, device) {
+
+        let dev_proxy = conn.with_proxy(
+            "org.freedesktop.NetworkManager",
+            device,
+            Duration::from_millis(5000),
+        );
+
+        match make_interface(&conn, &dev_proxy, init) {
             Some(i) => interfaces.push(i),
             _ => {}
         }
+
     }
 
+    if init {
+        // Device add event
+        let _ = proxy.match_signal(|sig: OrgFreedesktopNetworkManagerDeviceAdded, conn: &Connection, _: &Message| {
+            let dev_proxy = conn.with_proxy(
+                "org.freedesktop.NetworkManager",
+                sig.device_path,
+                Duration::from_millis(5000),
+            );
+            
+            add_statechange_listener(&dev_proxy);
+            true
+        });
+    }
 
     match serde_json::to_string(&interfaces) {
         Ok(out) => {
-            let _ = stdout.write_all(out.as_bytes());
+            let _ = stdout.write_all(&[out.as_bytes(), b"\n"].concat());
             let _ = stdout.flush();
         },
         Err(e) => {
@@ -178,4 +203,15 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     };
 
     Ok(())
+}
+
+fn main() -> Result<(), Box<dyn std::error::Error>> {
+
+    let conn = Connection::new_system()?;
+
+    let _ = make_n_dump_devices(&conn, true);
+    
+    loop {
+        conn.process(Duration::from_millis(1000))?; 
+    }
 }
