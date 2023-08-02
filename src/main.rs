@@ -1,23 +1,18 @@
 use std::env;
 
-mod nmwatcher;
 mod batwatcher;
 mod bus;
+mod nmwatcher;
 
 fn main() {
-
     let args: Vec<String> = env::args().collect();
-    
-    match args.len() {
-        2 => {
-            let arg = &args[1];
-            let _ = match &arg[..] {
-                "nmwatcher" => nmwatcher::nmwatcher(),
-                "batwatcher" => batwatcher::batwatcher(),
-                _ => {}
-            };
-        },
-        _ => {}
-    }
 
+    if args.len() == 2 {
+        let arg = &args[1];
+        match &arg[..] {
+            "nmwatcher" => nmwatcher::nmwatcher(),
+            "batwatcher" => batwatcher::batwatcher(),
+            _ => {}
+        };
+    }
 }

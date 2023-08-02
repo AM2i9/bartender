@@ -1,7 +1,12 @@
-use std::{time::Duration, io::Write};
+use crate::bus::bat_disp::{
+    OrgFreedesktopDBusPropertiesPropertiesChanged, OrgFreedesktopUPowerDevice,
+};
+use dbus::{
+    blocking::{Connection, Proxy},
+    Message,
+};
 use serde::Serialize;
-use dbus::{blocking::{Connection, Proxy}, Message};
-use crate::bus::bat_disp::{OrgFreedesktopUPowerDevice, OrgFreedesktopDBusPropertiesPropertiesChanged};
+use std::{io::Write, time::Duration};
 
 #[derive(Serialize, Debug)]
 enum BatteryState {
@@ -11,14 +16,14 @@ enum BatteryState {
     Empty,
     FullyCharged,
     PendingCharge,
-    PendingDischarge
+    PendingDischarge,
 }
 
 #[derive(Serialize, Debug)]
 struct Battery {
     state: BatteryState,
     charge: f64,
-    time_to: i64
+    time_to: i64,
 }
 
 fn fetch_battery(bat_proxy: &Proxy<&Connection>) -> Battery {
@@ -36,38 +41,27 @@ fn fetch_battery(bat_proxy: &Proxy<&Connection>) -> Battery {
         _ => BatteryState::Unknown,
     };
 
-    let charge: f64 = match bat_proxy.percentage() {
-        Ok(p) => p,
-        Err(e) => {
-            eprintln!("Failed to get charge percentage: {}", e);
-            0.0
-        }
-    };
+    let charge: f64 = bat_proxy.percentage().unwrap_or_else(|e| {
+        eprintln!("Failed to get charge percentage: {}", e);
+        0.0
+    });
 
     let time_to = match state {
-        BatteryState::Charging => {
-            match bat_proxy.time_to_full() {
-                Ok(t) => t,
-                Err(e) => {
-                    eprintln!("Failed to get time to full: {}", e);
-                    0
-                }
-            }
-        },
-        _ => {
-            match bat_proxy.time_to_empty() {
-                Ok(t) => t,
-                Err(e) => {
-                    eprintln!("Failed to get time to empty: {}", e);
-                    0
-                }
-            }
-        }
+        BatteryState::Charging => bat_proxy.time_to_full().unwrap_or_else(|e| {
+            eprintln!("Failed to get time to full: {}", e);
+            0
+        }),
+        _ => bat_proxy.time_to_empty().unwrap_or_else(|e| {
+            eprintln!("Failed to get time to empty: {}", e);
+            0
+        }),
     };
 
-
-    Battery{ state, charge, time_to }
-
+    Battery {
+        state,
+        charge,
+        time_to,
+    }
 }
 
 fn dump_battery(conn: &Connection) {
@@ -78,12 +72,12 @@ fn dump_battery(conn: &Connection) {
         "/org/freedesktop/UPower/devices/DisplayDevice",
         Duration::from_millis(5000),
     );
-    
+
     match serde_json::to_string(&fetch_battery(&bat_proxy)) {
         Ok(out) => {
             let _ = stdout.write_all(&[out.as_bytes(), b"\n"].concat());
             let _ = stdout.flush();
-        },
+        }
         Err(e) => {
             eprintln!("Failed to serialize output: {}", e);
         }
@@ -93,7 +87,6 @@ fn dump_battery(conn: &Connection) {
 pub fn batwatcher() {
     match Connection::new_system() {
         Ok(conn) => {
-
             dump_battery(&conn);
 
             let bat_proxy = conn.with_proxy(
@@ -102,16 +95,17 @@ pub fn batwatcher() {
                 Duration::from_millis(5000),
             );
 
-            let _ = bat_proxy.match_signal(|_: OrgFreedesktopDBusPropertiesPropertiesChanged, c: &Connection, _: &Message| {
-                dump_battery(c);
-                true
-            });
+            let _ = bat_proxy.match_signal(
+                |_: OrgFreedesktopDBusPropertiesPropertiesChanged, c: &Connection, _: &Message| {
+                    dump_battery(c);
+                    true
+                },
+            );
 
             loop {
-                match conn.process(Duration::from_millis(1000)) {
-                    Err(e) => eprintln!("Failed to process incomming messages: {}", e),
-                    _ => {}
-                }; 
+                if let Err(e) = conn.process(Duration::from_millis(1000)) {
+                    eprintln!("Failed to process incomming messages: {}", e)
+                }
             }
         }
         Err(e) => eprintln!("Failed to connect to system dbus: {}", e),

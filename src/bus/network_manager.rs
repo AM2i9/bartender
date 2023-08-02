@@ -43,13 +43,11 @@ impl dbus::message::SignalArgs for OrgFreedesktopDBusPropertiesPropertiesChanged
 impl<'a, T: blocking::BlockingSender, C: ::std::ops::Deref<Target=T>> OrgFreedesktopDBusProperties for blocking::Proxy<'a, C> {
 
     fn get(&self, interface_name: &str, property_name: &str) -> Result<arg::Variant<Box<dyn arg::RefArg + 'static>>, dbus::Error> {
-        self.method_call("org.freedesktop.DBus.Properties", "Get", (interface_name, property_name, ))
-            .and_then(|r: (arg::Variant<Box<dyn arg::RefArg + 'static>>, )| Ok(r.0, ))
+        self.method_call("org.freedesktop.DBus.Properties", "Get", (interface_name, property_name, )).map(|r: (arg::Variant<Box<dyn arg::RefArg + 'static>>, )| r.0)
     }
 
     fn get_all(&self, interface_name: &str) -> Result<arg::PropMap, dbus::Error> {
-        self.method_call("org.freedesktop.DBus.Properties", "GetAll", (interface_name, ))
-            .and_then(|r: (arg::PropMap, )| Ok(r.0, ))
+        self.method_call("org.freedesktop.DBus.Properties", "GetAll", (interface_name, )).map(|r: (arg::PropMap, )| r.0)
     }
 
     fn set(&self, interface_name: &str, property_name: &str, value: arg::Variant<Box<dyn arg::RefArg>>) -> Result<(), dbus::Error> {
@@ -64,8 +62,7 @@ pub trait OrgFreedesktopDBusIntrospectable {
 impl<'a, T: blocking::BlockingSender, C: ::std::ops::Deref<Target=T>> OrgFreedesktopDBusIntrospectable for blocking::Proxy<'a, C> {
 
     fn introspect(&self) -> Result<String, dbus::Error> {
-        self.method_call("org.freedesktop.DBus.Introspectable", "Introspect", ())
-            .and_then(|r: (String, )| Ok(r.0, ))
+        self.method_call("org.freedesktop.DBus.Introspectable", "Introspect", ()).map(|r: (String, )| r.0)
     }
 }
 
@@ -81,8 +78,7 @@ impl<'a, T: blocking::BlockingSender, C: ::std::ops::Deref<Target=T>> OrgFreedes
     }
 
     fn get_machine_id(&self) -> Result<String, dbus::Error> {
-        self.method_call("org.freedesktop.DBus.Peer", "GetMachineId", ())
-            .and_then(|r: (String, )| Ok(r.0, ))
+        self.method_call("org.freedesktop.DBus.Peer", "GetMachineId", ()).map(|r: (String, )| r.0)
     }
 }
 
@@ -239,23 +235,19 @@ impl<'a, T: blocking::BlockingSender, C: ::std::ops::Deref<Target=T>> OrgFreedes
     }
 
     fn get_devices(&self) -> Result<Vec<dbus::Path<'static>>, dbus::Error> {
-        self.method_call("org.freedesktop.NetworkManager", "GetDevices", ())
-            .and_then(|r: (Vec<dbus::Path<'static>>, )| Ok(r.0, ))
+        self.method_call("org.freedesktop.NetworkManager", "GetDevices", ()).map(|r: (Vec<dbus::Path<'static>>, )| r.0)
     }
 
     fn get_all_devices(&self) -> Result<Vec<dbus::Path<'static>>, dbus::Error> {
-        self.method_call("org.freedesktop.NetworkManager", "GetAllDevices", ())
-            .and_then(|r: (Vec<dbus::Path<'static>>, )| Ok(r.0, ))
+        self.method_call("org.freedesktop.NetworkManager", "GetAllDevices", ()).map(|r: (Vec<dbus::Path<'static>>, )| r.0)
     }
 
     fn get_device_by_ip_iface(&self, iface: &str) -> Result<dbus::Path<'static>, dbus::Error> {
-        self.method_call("org.freedesktop.NetworkManager", "GetDeviceByIpIface", (iface, ))
-            .and_then(|r: (dbus::Path<'static>, )| Ok(r.0, ))
+        self.method_call("org.freedesktop.NetworkManager", "GetDeviceByIpIface", (iface, )).map(|r: (dbus::Path<'static>, )| r.0)
     }
 
     fn activate_connection(&self, connection: dbus::Path, device: dbus::Path, specific_object: dbus::Path) -> Result<dbus::Path<'static>, dbus::Error> {
-        self.method_call("org.freedesktop.NetworkManager", "ActivateConnection", (connection, device, specific_object, ))
-            .and_then(|r: (dbus::Path<'static>, )| Ok(r.0, ))
+        self.method_call("org.freedesktop.NetworkManager", "ActivateConnection", (connection, device, specific_object, )).map(|r: (dbus::Path<'static>, )| r.0)
     }
 
     fn add_and_activate_connection(&self, connection: ::std::collections::HashMap<&str, arg::PropMap>, device: dbus::Path, specific_object: dbus::Path) -> Result<(dbus::Path<'static>, dbus::Path<'static>), dbus::Error> {
@@ -279,8 +271,7 @@ impl<'a, T: blocking::BlockingSender, C: ::std::ops::Deref<Target=T>> OrgFreedes
     }
 
     fn get_permissions(&self) -> Result<::std::collections::HashMap<String, String>, dbus::Error> {
-        self.method_call("org.freedesktop.NetworkManager", "GetPermissions", ())
-            .and_then(|r: (::std::collections::HashMap<String, String>, )| Ok(r.0, ))
+        self.method_call("org.freedesktop.NetworkManager", "GetPermissions", ()).map(|r: (::std::collections::HashMap<String, String>, )| r.0)
     }
 
     fn set_logging(&self, level: &str, domains: &str) -> Result<(), dbus::Error> {
@@ -292,18 +283,15 @@ impl<'a, T: blocking::BlockingSender, C: ::std::ops::Deref<Target=T>> OrgFreedes
     }
 
     fn check_connectivity(&self) -> Result<u32, dbus::Error> {
-        self.method_call("org.freedesktop.NetworkManager", "CheckConnectivity", ())
-            .and_then(|r: (u32, )| Ok(r.0, ))
+        self.method_call("org.freedesktop.NetworkManager", "CheckConnectivity", ()).map(|r: (u32, )| r.0)
     }
 
     fn state(&self) -> Result<u32, dbus::Error> {
-        self.method_call("org.freedesktop.NetworkManager", "state", ())
-            .and_then(|r: (u32, )| Ok(r.0, ))
+        self.method_call("org.freedesktop.NetworkManager", "state", ()).map(|r: (u32, )| r.0)
     }
 
     fn checkpoint_create(&self, devices: Vec<dbus::Path>, rollback_timeout: u32, flags: u32) -> Result<dbus::Path<'static>, dbus::Error> {
-        self.method_call("org.freedesktop.NetworkManager", "CheckpointCreate", (devices, rollback_timeout, flags, ))
-            .and_then(|r: (dbus::Path<'static>, )| Ok(r.0, ))
+        self.method_call("org.freedesktop.NetworkManager", "CheckpointCreate", (devices, rollback_timeout, flags, )).map(|r: (dbus::Path<'static>, )| r.0)
     }
 
     fn checkpoint_destroy(&self, checkpoint: dbus::Path) -> Result<(), dbus::Error> {
@@ -311,8 +299,7 @@ impl<'a, T: blocking::BlockingSender, C: ::std::ops::Deref<Target=T>> OrgFreedes
     }
 
     fn checkpoint_rollback(&self, checkpoint: dbus::Path) -> Result<::std::collections::HashMap<String, u32>, dbus::Error> {
-        self.method_call("org.freedesktop.NetworkManager", "CheckpointRollback", (checkpoint, ))
-            .and_then(|r: (::std::collections::HashMap<String, u32>, )| Ok(r.0, ))
+        self.method_call("org.freedesktop.NetworkManager", "CheckpointRollback", (checkpoint, )).map(|r: (::std::collections::HashMap<String, u32>, )| r.0)
     }
 
     fn checkpoint_adjust_rollback_timeout(&self, checkpoint: dbus::Path, add_timeout: u32) -> Result<(), dbus::Error> {
@@ -320,126 +307,126 @@ impl<'a, T: blocking::BlockingSender, C: ::std::ops::Deref<Target=T>> OrgFreedes
     }
 
     fn devices(&self) -> Result<Vec<dbus::Path<'static>>, dbus::Error> {
-        <Self as blocking::stdintf::org_freedesktop_dbus::Properties>::get(&self, "org.freedesktop.NetworkManager", "Devices")
+        <Self as blocking::stdintf::org_freedesktop_dbus::Properties>::get(self, "org.freedesktop.NetworkManager", "Devices")
     }
 
     fn all_devices(&self) -> Result<Vec<dbus::Path<'static>>, dbus::Error> {
-        <Self as blocking::stdintf::org_freedesktop_dbus::Properties>::get(&self, "org.freedesktop.NetworkManager", "AllDevices")
+        <Self as blocking::stdintf::org_freedesktop_dbus::Properties>::get(self, "org.freedesktop.NetworkManager", "AllDevices")
     }
 
     fn checkpoints(&self) -> Result<Vec<dbus::Path<'static>>, dbus::Error> {
-        <Self as blocking::stdintf::org_freedesktop_dbus::Properties>::get(&self, "org.freedesktop.NetworkManager", "Checkpoints")
+        <Self as blocking::stdintf::org_freedesktop_dbus::Properties>::get(self, "org.freedesktop.NetworkManager", "Checkpoints")
     }
 
     fn networking_enabled(&self) -> Result<bool, dbus::Error> {
-        <Self as blocking::stdintf::org_freedesktop_dbus::Properties>::get(&self, "org.freedesktop.NetworkManager", "NetworkingEnabled")
+        <Self as blocking::stdintf::org_freedesktop_dbus::Properties>::get(self, "org.freedesktop.NetworkManager", "NetworkingEnabled")
     }
 
     fn wireless_enabled(&self) -> Result<bool, dbus::Error> {
-        <Self as blocking::stdintf::org_freedesktop_dbus::Properties>::get(&self, "org.freedesktop.NetworkManager", "WirelessEnabled")
+        <Self as blocking::stdintf::org_freedesktop_dbus::Properties>::get(self, "org.freedesktop.NetworkManager", "WirelessEnabled")
     }
 
     fn wireless_hardware_enabled(&self) -> Result<bool, dbus::Error> {
-        <Self as blocking::stdintf::org_freedesktop_dbus::Properties>::get(&self, "org.freedesktop.NetworkManager", "WirelessHardwareEnabled")
+        <Self as blocking::stdintf::org_freedesktop_dbus::Properties>::get(self, "org.freedesktop.NetworkManager", "WirelessHardwareEnabled")
     }
 
     fn wwan_enabled(&self) -> Result<bool, dbus::Error> {
-        <Self as blocking::stdintf::org_freedesktop_dbus::Properties>::get(&self, "org.freedesktop.NetworkManager", "WwanEnabled")
+        <Self as blocking::stdintf::org_freedesktop_dbus::Properties>::get(self, "org.freedesktop.NetworkManager", "WwanEnabled")
     }
 
     fn wwan_hardware_enabled(&self) -> Result<bool, dbus::Error> {
-        <Self as blocking::stdintf::org_freedesktop_dbus::Properties>::get(&self, "org.freedesktop.NetworkManager", "WwanHardwareEnabled")
+        <Self as blocking::stdintf::org_freedesktop_dbus::Properties>::get(self, "org.freedesktop.NetworkManager", "WwanHardwareEnabled")
     }
 
     fn wimax_enabled(&self) -> Result<bool, dbus::Error> {
-        <Self as blocking::stdintf::org_freedesktop_dbus::Properties>::get(&self, "org.freedesktop.NetworkManager", "WimaxEnabled")
+        <Self as blocking::stdintf::org_freedesktop_dbus::Properties>::get(self, "org.freedesktop.NetworkManager", "WimaxEnabled")
     }
 
     fn wimax_hardware_enabled(&self) -> Result<bool, dbus::Error> {
-        <Self as blocking::stdintf::org_freedesktop_dbus::Properties>::get(&self, "org.freedesktop.NetworkManager", "WimaxHardwareEnabled")
+        <Self as blocking::stdintf::org_freedesktop_dbus::Properties>::get(self, "org.freedesktop.NetworkManager", "WimaxHardwareEnabled")
     }
 
     fn radio_flags(&self) -> Result<u32, dbus::Error> {
-        <Self as blocking::stdintf::org_freedesktop_dbus::Properties>::get(&self, "org.freedesktop.NetworkManager", "RadioFlags")
+        <Self as blocking::stdintf::org_freedesktop_dbus::Properties>::get(self, "org.freedesktop.NetworkManager", "RadioFlags")
     }
 
     fn active_connections(&self) -> Result<Vec<dbus::Path<'static>>, dbus::Error> {
-        <Self as blocking::stdintf::org_freedesktop_dbus::Properties>::get(&self, "org.freedesktop.NetworkManager", "ActiveConnections")
+        <Self as blocking::stdintf::org_freedesktop_dbus::Properties>::get(self, "org.freedesktop.NetworkManager", "ActiveConnections")
     }
 
     fn primary_connection(&self) -> Result<dbus::Path<'static>, dbus::Error> {
-        <Self as blocking::stdintf::org_freedesktop_dbus::Properties>::get(&self, "org.freedesktop.NetworkManager", "PrimaryConnection")
+        <Self as blocking::stdintf::org_freedesktop_dbus::Properties>::get(self, "org.freedesktop.NetworkManager", "PrimaryConnection")
     }
 
     fn primary_connection_type(&self) -> Result<String, dbus::Error> {
-        <Self as blocking::stdintf::org_freedesktop_dbus::Properties>::get(&self, "org.freedesktop.NetworkManager", "PrimaryConnectionType")
+        <Self as blocking::stdintf::org_freedesktop_dbus::Properties>::get(self, "org.freedesktop.NetworkManager", "PrimaryConnectionType")
     }
 
     fn metered(&self) -> Result<u32, dbus::Error> {
-        <Self as blocking::stdintf::org_freedesktop_dbus::Properties>::get(&self, "org.freedesktop.NetworkManager", "Metered")
+        <Self as blocking::stdintf::org_freedesktop_dbus::Properties>::get(self, "org.freedesktop.NetworkManager", "Metered")
     }
 
     fn activating_connection(&self) -> Result<dbus::Path<'static>, dbus::Error> {
-        <Self as blocking::stdintf::org_freedesktop_dbus::Properties>::get(&self, "org.freedesktop.NetworkManager", "ActivatingConnection")
+        <Self as blocking::stdintf::org_freedesktop_dbus::Properties>::get(self, "org.freedesktop.NetworkManager", "ActivatingConnection")
     }
 
     fn startup(&self) -> Result<bool, dbus::Error> {
-        <Self as blocking::stdintf::org_freedesktop_dbus::Properties>::get(&self, "org.freedesktop.NetworkManager", "Startup")
+        <Self as blocking::stdintf::org_freedesktop_dbus::Properties>::get(self, "org.freedesktop.NetworkManager", "Startup")
     }
 
     fn version(&self) -> Result<String, dbus::Error> {
-        <Self as blocking::stdintf::org_freedesktop_dbus::Properties>::get(&self, "org.freedesktop.NetworkManager", "Version")
+        <Self as blocking::stdintf::org_freedesktop_dbus::Properties>::get(self, "org.freedesktop.NetworkManager", "Version")
     }
 
     fn version_info(&self) -> Result<Vec<u32>, dbus::Error> {
-        <Self as blocking::stdintf::org_freedesktop_dbus::Properties>::get(&self, "org.freedesktop.NetworkManager", "VersionInfo")
+        <Self as blocking::stdintf::org_freedesktop_dbus::Properties>::get(self, "org.freedesktop.NetworkManager", "VersionInfo")
     }
 
     fn capabilities(&self) -> Result<Vec<u32>, dbus::Error> {
-        <Self as blocking::stdintf::org_freedesktop_dbus::Properties>::get(&self, "org.freedesktop.NetworkManager", "Capabilities")
+        <Self as blocking::stdintf::org_freedesktop_dbus::Properties>::get(self, "org.freedesktop.NetworkManager", "Capabilities")
     }
 
     fn state_(&self) -> Result<u32, dbus::Error> {
-        <Self as blocking::stdintf::org_freedesktop_dbus::Properties>::get(&self, "org.freedesktop.NetworkManager", "State")
+        <Self as blocking::stdintf::org_freedesktop_dbus::Properties>::get(self, "org.freedesktop.NetworkManager", "State")
     }
 
     fn connectivity(&self) -> Result<u32, dbus::Error> {
-        <Self as blocking::stdintf::org_freedesktop_dbus::Properties>::get(&self, "org.freedesktop.NetworkManager", "Connectivity")
+        <Self as blocking::stdintf::org_freedesktop_dbus::Properties>::get(self, "org.freedesktop.NetworkManager", "Connectivity")
     }
 
     fn connectivity_check_available(&self) -> Result<bool, dbus::Error> {
-        <Self as blocking::stdintf::org_freedesktop_dbus::Properties>::get(&self, "org.freedesktop.NetworkManager", "ConnectivityCheckAvailable")
+        <Self as blocking::stdintf::org_freedesktop_dbus::Properties>::get(self, "org.freedesktop.NetworkManager", "ConnectivityCheckAvailable")
     }
 
     fn connectivity_check_enabled(&self) -> Result<bool, dbus::Error> {
-        <Self as blocking::stdintf::org_freedesktop_dbus::Properties>::get(&self, "org.freedesktop.NetworkManager", "ConnectivityCheckEnabled")
+        <Self as blocking::stdintf::org_freedesktop_dbus::Properties>::get(self, "org.freedesktop.NetworkManager", "ConnectivityCheckEnabled")
     }
 
     fn connectivity_check_uri(&self) -> Result<String, dbus::Error> {
-        <Self as blocking::stdintf::org_freedesktop_dbus::Properties>::get(&self, "org.freedesktop.NetworkManager", "ConnectivityCheckUri")
+        <Self as blocking::stdintf::org_freedesktop_dbus::Properties>::get(self, "org.freedesktop.NetworkManager", "ConnectivityCheckUri")
     }
 
     fn global_dns_configuration(&self) -> Result<arg::PropMap, dbus::Error> {
-        <Self as blocking::stdintf::org_freedesktop_dbus::Properties>::get(&self, "org.freedesktop.NetworkManager", "GlobalDnsConfiguration")
+        <Self as blocking::stdintf::org_freedesktop_dbus::Properties>::get(self, "org.freedesktop.NetworkManager", "GlobalDnsConfiguration")
     }
 
     fn set_wireless_enabled(&self, value: bool) -> Result<(), dbus::Error> {
-        <Self as blocking::stdintf::org_freedesktop_dbus::Properties>::set(&self, "org.freedesktop.NetworkManager", "WirelessEnabled", value)
+        <Self as blocking::stdintf::org_freedesktop_dbus::Properties>::set(self, "org.freedesktop.NetworkManager", "WirelessEnabled", value)
     }
 
     fn set_wwan_enabled(&self, value: bool) -> Result<(), dbus::Error> {
-        <Self as blocking::stdintf::org_freedesktop_dbus::Properties>::set(&self, "org.freedesktop.NetworkManager", "WwanEnabled", value)
+        <Self as blocking::stdintf::org_freedesktop_dbus::Properties>::set(self, "org.freedesktop.NetworkManager", "WwanEnabled", value)
     }
 
     fn set_wimax_enabled(&self, value: bool) -> Result<(), dbus::Error> {
-        <Self as blocking::stdintf::org_freedesktop_dbus::Properties>::set(&self, "org.freedesktop.NetworkManager", "WimaxEnabled", value)
+        <Self as blocking::stdintf::org_freedesktop_dbus::Properties>::set(self, "org.freedesktop.NetworkManager", "WimaxEnabled", value)
     }
 
     fn set_connectivity_check_enabled(&self, value: bool) -> Result<(), dbus::Error> {
-        <Self as blocking::stdintf::org_freedesktop_dbus::Properties>::set(&self, "org.freedesktop.NetworkManager", "ConnectivityCheckEnabled", value)
+        <Self as blocking::stdintf::org_freedesktop_dbus::Properties>::set(self, "org.freedesktop.NetworkManager", "ConnectivityCheckEnabled", value)
     }
 
     fn set_global_dns_configuration(&self, value: arg::PropMap) -> Result<(), dbus::Error> {
-        <Self as blocking::stdintf::org_freedesktop_dbus::Properties>::set(&self, "org.freedesktop.NetworkManager", "GlobalDnsConfiguration", value)
+        <Self as blocking::stdintf::org_freedesktop_dbus::Properties>::set(self, "org.freedesktop.NetworkManager", "GlobalDnsConfiguration", value)
     }
 }
