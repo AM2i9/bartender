@@ -3,6 +3,7 @@ use std::env;
 mod batwatcher;
 mod bus;
 mod nmwatcher;
+mod pulsewatcher;
 
 fn main() {
     let args: Vec<String> = env::args().collect();
@@ -12,6 +13,7 @@ fn main() {
         match &arg[..] {
             "nmwatcher" => nmwatcher::nmwatcher(),
             "batwatcher" => batwatcher::batwatcher(),
+            "pulsewatcher" => pulsewatcher::pulsewatcher(),
             _ => {}
         };
     }
