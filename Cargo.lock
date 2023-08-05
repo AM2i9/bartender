@@ -13,6 +13,7 @@ name = "bartender"
 version = "0.1.0"
 dependencies = [
  "dbus",
+ "i3ipc",
  "lazy_static",
  "libpulse-binding",
  "serde",
@@ -26,6 +27,12 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "bef38d45163c2f1dde094a7dfd33ccf595c92905c8f8f4fdc18d06fb1037718a"
 
 [[package]]
+name = "byteorder"
+version = "1.4.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "14c189c53d098945499cdfa7ecc63567cf3886b3332b312a5b4585d8d3a6a610"
+
+[[package]]
 name = "dbus"
 version = "0.9.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -34,6 +41,18 @@ dependencies = [
  "libc",
  "libdbus-sys",
  "winapi",
+]
+
+[[package]]
+name = "i3ipc"
+version = "0.10.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "63f3dac00c473fae88cb3114f35312204469a32ffb20874264a5214d6c8c927e"
+dependencies = [
+ "byteorder",
+ "log",
+ "serde",
+ "serde_json",
 ]
 
 [[package]]
@@ -89,6 +108,12 @@ dependencies = [
  "pkg-config",
  "winapi",
 ]
+
+[[package]]
+name = "log"
+version = "0.4.19"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b06a4cde4c0f271a446782e3eff8de789548ce57dbc8eca9292c27f4a42004b4"
 
 [[package]]
 name = "num-derive"

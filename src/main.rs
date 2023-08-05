@@ -5,6 +5,7 @@ mod bus;
 mod nmwatcher;
 mod pulsewatcher;
 mod musicwatcher;
+mod i3watcher;
 
 fn main() {
     let args: Vec<String> = env::args().collect();
@@ -16,6 +17,7 @@ fn main() {
             "batwatcher" => batwatcher::batwatcher(),
             "pulsewatcher" => pulsewatcher::pulsewatcher(),
             "musicwatcher" => musicwatcher::musicwatcher(),
+            "i3watcher" => i3watcher::i3watcher(),
             _ => {}
         };
     }
