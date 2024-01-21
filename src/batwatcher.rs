@@ -7,6 +7,7 @@ use dbus::{
 };
 use serde::Serialize;
 use std::{io::Write, time::Duration};
+use notify_rust::{Notification, Urgency};
 
 #[derive(Serialize, Debug)]
 enum BatteryState {
@@ -64,7 +65,7 @@ fn fetch_battery(bat_proxy: &Proxy<&Connection>) -> Battery {
     }
 }
 
-fn dump_battery(conn: &Connection) {
+fn check_n_dump_battery(conn: &Connection) {
     let mut stdout = std::io::stdout().lock();
 
     let bat_proxy = conn.with_proxy(
@@ -73,7 +74,17 @@ fn dump_battery(conn: &Connection) {
         Duration::from_millis(5000),
     );
 
-    match serde_json::to_string(&fetch_battery(&bat_proxy)) {
+    let battery = &fetch_battery(&bat_proxy);
+
+    if battery.charge <= 5.0 && matches!(battery.state, BatteryState::Discharging) {
+        let _ = Notification::new()
+            .summary("Battery critically low!")
+            .body(&format!("{}% left. Computer may shut down soon.", battery.charge))
+            .urgency(Urgency::Critical)
+            .show();
+    }
+
+    match serde_json::to_string(battery) {
         Ok(out) => {
             let _ = stdout.write_all(&[out.as_bytes(), b"\n"].concat());
             let _ = stdout.flush();
@@ -87,7 +98,7 @@ fn dump_battery(conn: &Connection) {
 pub fn batwatcher() {
     match Connection::new_system() {
         Ok(conn) => {
-            dump_battery(&conn);
+            check_n_dump_battery(&conn);
 
             let bat_proxy = conn.with_proxy(
                 "org.freedesktop.UPower",
@@ -97,7 +108,7 @@ pub fn batwatcher() {
 
             let _ = bat_proxy.match_signal(
                 |_: OrgFreedesktopDBusPropertiesPropertiesChanged, c: &Connection, _: &Message| {
-                    dump_battery(c);
+                    check_n_dump_battery(c);
                     true
                 },
             );
